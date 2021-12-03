@@ -30,7 +30,7 @@ p 'Part 1'
 p gamma_rate.to_i(2) * eplison_rate.to_i(2)
 
 # Part 2
-def find_binary_string(strings, filter_by)
+def find_binary_string(strings, filter_by_max)
   strings.first.length.times do |i|
     break if strings.length == 1
 
@@ -39,7 +39,7 @@ def find_binary_string(strings, filter_by)
     max = counts[0] > counts[1] ? '0' : '1'
 
     strings.select! do |s|
-      if filter_by == :max
+      if filter_by_max
         s[i] == max
       else
         s[i] != max
@@ -50,8 +50,8 @@ def find_binary_string(strings, filter_by)
   strings.first
 end
 
-oxygen_generator_rating = find_binary_string(input.dup, :max)
-co2_scrubber_rating = find_binary_string(input.dup, :min)
+oxygen_generator_rating = find_binary_string(input.dup, true)
+co2_scrubber_rating = find_binary_string(input.dup, false)
 
 p 'Part 2'
 p oxygen_generator_rating.to_i(2) * co2_scrubber_rating.to_i(2)
