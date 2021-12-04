@@ -35,10 +35,6 @@ for each number in numbers:
   - return nil if the board has not won
 =end
 
-
-
-
-
 def winning_row(board)
   r = 0
 
@@ -113,4 +109,49 @@ result[:board].each do |line|
 end
 
 p 'Part 1'
+p winning_number * board_total
+
+# Part 2
+
+def check_for_win(board, num)
+  return true if winning_row(board) || winning_column(board)
+end
+
+def check_numbers(numbers, boards, winning_boards)
+  numbers.each do |num|
+    i = 0
+    while i < boards.length do
+      if mark_number(boards[i], num)
+        if check_for_win(boards[i], num)
+          winning_boards << [boards[i], num]
+          boards = boards[0...i] + boards[(i + 1)...boards.length]
+        else
+          i += 1
+        end
+      end
+    end
+  end
+
+  winning_boards
+end
+
+def find_winning_board(numbers, boards)
+  winning_boards = []
+
+  check_numbers(numbers, boards, winning_boards)
+
+  winning_boards
+end
+
+result = find_winning_board(numbers, boards.dup).last
+
+winning_number = result.last
+board_total = 0
+result.first.each do |line|
+  line.each do |num|
+    board_total += num if num > 0
+  end
+end
+
+p 'Part 2'
 p winning_number * board_total
