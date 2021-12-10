@@ -39,8 +39,7 @@ p sum
 def calculate_basin_area(row, col, sum, visited = Hash.new(false))
   return sum if row < 0 || row >= @input.length
   return sum if col < 0 || col >= @input[0].length
-  return sum if @input[row][col] == 9
-  return sum if visited[[row, col]]
+  return sum if @input[row][col] == 9 || visited[[row, col]]
 
   sum += 1
   visited[[row, col]] = true
