@@ -1,38 +1,70 @@
 input = File
-  .open('inputs/15/test.txt')
+  .open('inputs/15/day_15.txt')
   .readlines
   .map(&:chomp)
   .map(&:chars)
   .map { |l| l.map(&:to_i) }
 
 p 'Part 1'
-
 def find_paths(map)
-  lowest_paths = Array.new(map.size) { Array.new(map[0].size) }
+  lowest_paths = Array.new(map.size) { Array.new(map[0].size, Float::INFINITY) }
+  lowest_paths[0][0] = 0
+  finished = Array.new(map.size) { Array.new(map[0].size, false) }
+  finished[0][0] = true
 
-  lowest_paths[-1][-1] = map[-1][-1]
+  right = { row: 0, col: 1, prev: [0, 0], val: map[0][1] }
+  down = { row: 1, col: 0, prev: [0, 0], val: map[1][0] }
 
-  find_path(map, 0, 0, lowest_paths)
+  stack = [right, down].sort { |a, b| a[:val] <=> b[:val] }.reverse
 
-  return lowest_paths[0][0] - map[0][0]
+  find_path(map, stack, lowest_paths, finished)
+
+  lowest_paths[-1][-1]
 end
 
-def find_path(map, row, col, lowest_paths)
-  return lowest_paths[row][col] if lowest_paths[row][col]
+def find_path(map, queue, lowest_paths, visited)
+  while !queue.empty? do
+    cur = queue.pop
+    row, col = cur[:row], cur[:col]
 
-  right = find_path(map, row, col + 1, lowest_paths) if col < map[row].size - 1
-  down = find_path(map, row + 1, col, lowest_paths) if row < map.size - 1
+    next if visited[row][col]
 
-  lowest_paths[row][col] = map[row][col]
+    visited[row][col] = true
+    queue.delete_if { |node| node[:row] == row && node[:col] == col }
 
-  lowest_paths[row][col] += right if down.nil?
-  lowest_paths[row][col] += down if right.nil?
-  lowest_paths[row][col] += [right, down].min if right && down
+    tmp = map[row][col] + lowest_paths[cur[:prev][0]][cur[:prev][1]]
 
-  return lowest_paths[row][col]
+    next if tmp > lowest_paths[row][col]
+
+    lowest_paths[row][col] = tmp
+    queue_next(map, row, col, cur[:prev], queue, lowest_paths, visited)
+  end
 end
 
-# p find_paths(input)
+def queue_next(map, row, col, prev, queue, lowest_paths, finished)
+  next_paths = []
+
+  [col - 1, col + 1].each do |c|
+    next if c < 0 || c >= map[0].size
+    next if [row, c] == prev || finished[row][c]
+
+    tmp = map[row][c] + lowest_paths[row][col]
+    queue << { row: row, col: c, prev: [row, col], val: tmp } if tmp < lowest_paths[row][c]
+  end
+
+  [row - 1, row + 1].each do |r|
+    next if r < 0 || r >= map.size
+    next if [r, col] == prev || finished[r][col]
+
+    tmp = map[r][col] + lowest_paths[row][col]
+    queue << { row: r, col: col, prev: [row, col], val: tmp } if tmp < lowest_paths[r][col]
+  end
+
+  queue.sort! { |a, b| a[:val] <=> b[:val] }.reverse!
+end
+
+result = find_paths(input)
+p result
 
 p 'Part 2'
 
