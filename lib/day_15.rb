@@ -12,10 +12,10 @@ def find_paths(map)
   finished = Array.new(map.size) { Array.new(map[0].size, false) }
   finished[0][0] = true
 
-  right = { row: 0, col: 1, prev: [0, 0], val: map[0][1] }
-  down = { row: 1, col: 0, prev: [0, 0], val: map[1][0] }
-
-  stack = [right, down].sort { |a, b| a[:val] <=> b[:val] }.reverse
+  stack = {
+    [0, 1] => { row: 0, col: 1, prev: [0, 0], val: map[0][1] },
+    [1, 0] => { row: 1, col: 0, prev: [0, 0], val: map[1][0] }
+  }
 
   find_path(map, stack, lowest_paths, finished)
 
@@ -24,14 +24,13 @@ end
 
 def find_path(map, queue, lowest_paths, visited)
   while !queue.empty? do
-    cur = queue.pop
+    cur = queue.values.min_by { |v| v[:val] }
+    queue.delete([cur[:row], cur[:col]])
     row, col = cur[:row], cur[:col]
 
     next if visited[row][col]
 
     visited[row][col] = true
-    queue.delete_if { |node| node[:row] == row && node[:col] == col }
-
     tmp = map[row][col] + lowest_paths[cur[:prev][0]][cur[:prev][1]]
 
     next if tmp > lowest_paths[row][col]
@@ -43,24 +42,19 @@ end
 
 def queue_next(map, row, col, prev, queue, lowest_paths, finished)
   next_paths = []
+  moves = [[row, col + 1], [row + 1, col], [row, col - 1], [row - 1, col]]
 
-  [col - 1, col + 1].each do |c|
+  moves.each do |move|
+    r, c = move[0], move[1]
     next if c < 0 || c >= map[0].size
-    next if [row, c] == prev || finished[row][c]
-
-    tmp = map[row][c] + lowest_paths[row][col]
-    queue << { row: row, col: c, prev: [row, col], val: tmp } if tmp < lowest_paths[row][c]
-  end
-
-  [row - 1, row + 1].each do |r|
     next if r < 0 || r >= map.size
-    next if [r, col] == prev || finished[r][col]
+    next if [r, c] == prev || finished[r][c]
 
-    tmp = map[r][col] + lowest_paths[row][col]
-    queue << { row: r, col: col, prev: [row, col], val: tmp } if tmp < lowest_paths[r][col]
+    tmp = map[r][c] + lowest_paths[row][col]
+    if tmp < lowest_paths[r][c] && !queue[[r, c]] || queue[[r, c]][:val] > tmp
+      queue[[r, c]] = { row: r, col: c, prev: [row, col], val: tmp }
+    end
   end
-
-  queue.sort! { |a, b| a[:val] <=> b[:val] }.reverse!
 end
 
 result = find_paths(input)
